@@ -1,0 +1,19 @@
+title: 你的名字
+description: 简短描述（例如：研究人员 | 开发者 | 某领域爱好者）
+baseurl: ""
+url: "https://your-username.github.io"  # 替换为你的GitHub Pages链接
+
+# 导航菜单
+nav:
+  - name: 主页
+    url: /
+  - name: 博客
+    url: /blog
+  - name: 工作论文
+    url: /papers
+  - name: CV
+    url: /cv
+
+# 博客设置
+permalink: /blog/:year/:month/:day/:title/
+markdown: kramdown
