@@ -151,7 +151,52 @@ function configureMarked() {
                '</table></div>';
     };
     
+    renderer.heading = function(text, level) {
+        // 修复字体大小计算，确保结果为有效数值
+        const sizeMap = {
+            1: '4xl',
+            2: '3xl', 
+            3: '2xl',
+            4: 'xl',
+            5: 'lg',
+            6: 'base'
+        };
+        const textSize = sizeMap[level] || 'base';
+        return '<h' + level + ' class="text-' + textSize + ' font-bold mt-6 mb-4 text-gray-900">' + 
+               text + '</' + level + '>\n';
+    };
+    
+    renderer.paragraph = function(text) {
+        // 确保text是字符串类型
+        if (typeof text !== 'string') {
+            text = String(text);
+        }
+        return '<p class="mb-4 text-gray-700 leading-relaxed">' + text + '</p>\n';
+    };
+    
+    renderer.list = function(body, ordered) {
+        // 确保body是字符串类型
+        if (typeof body !== 'string') {
+            body = String(body);
+        }
+        const type = ordered ? 'ol' : 'ul';
+        const className = ordered ? 'list-decimal' : 'list-disc';
+        return '<' + type + ' class="' + className + ' pl-5 mb-4 text-gray-700 space-y-2">' + body + '</' + type + '>\n';
+    };
+    
+    renderer.listitem = function(text) {
+        // 确保text是字符串类型
+        if (typeof text !== 'string') {
+            text = String(text);
+        }
+        return '<li class="pl-2">' + text + '</li>\n';
+    };
+    
     renderer.tablecell = function(content, flags) {
+        // 确保content是字符串类型
+        if (typeof content !== 'string') {
+            content = String(content);
+        }
         const type = flags.header ? 'th' : 'td';
         const tag = flags.header ? 
             '<' + type + ' class="px-4 py-2 text-left font-semibold text-gray-700 border-b">' : 
@@ -159,38 +204,11 @@ function configureMarked() {
         return tag + content + '</' + type + '>\n';
     };
     
-    renderer.heading = function(text, level) {
-        return '<h' + level + ' class="text-' + (7 - level) + 'xl font-bold mt-6 mb-4 text-gray-900">' + 
-               text + '</' + level + '>\n';
-    };
-    
-    renderer.paragraph = function(text) {
-        return '<p class="mb-4 text-gray-700 leading-relaxed">' + text + '</p>\n';
-    };
-    
-    renderer.list = function(body, ordered) {
-        const type = ordered ? 'ol' : 'ul';
-        const className = ordered ? 'list-decimal' : 'list-disc';
-        return '<' + type + ' class="' + className + ' pl-5 mb-4 text-gray-700 space-y-2">' + body + '</' + type + '>\n';
-    };
-    
-    renderer.listitem = function(text) {
-        return '<li class="pl-2">' + text + '</li>\n';
-    };
-    
-    renderer.link = function(href, title, text) {
-        if (href === null) {
-            return text;
-        }
-        let out = '<a href="' + escape(href) + '" class="text-primary hover:underline"';
-        if (title) {
-            out += ' title="' + title + '"';
-        }
-        out += '>' + text + '</a>';
-        return out;
-    };
-    
     renderer.blockquote = function(quote) {
+        // 确保quote是字符串类型
+        if (typeof quote !== 'string') {
+            quote = String(quote);
+        }
         return '<blockquote class="border-l-4 border-primary pl-4 py-2 my-4 bg-blue-50">' + 
                quote + '</blockquote>\n';
     };
@@ -227,21 +245,75 @@ function configureMarked() {
 // 加载文章详情
 async function loadArticleDetail(file, title) {
     try {
-        const response = await fetch(file);
+        // 确保使用正确的路径加载文章
+        let articlePath = file;
+        if (file.startsWith('/')) {
+            // 如果是绝对路径，直接使用
+            articlePath = file;
+        } else if (!file.startsWith('./') && !file.startsWith('../')) {
+            // 如果是相对路径但不以 ./ 或 ../ 开头，则添加前导斜杠
+            articlePath = '/' + file;
+        } else {
+            // 其他情况直接使用
+            articlePath = file;
+        }
+        
+        console.log('正在加载文章:', articlePath);
+        
+        const response = await fetch(articlePath);
         if (!response.ok) {
-            throw new Error('文章加载失败');
+            throw new Error('文章加载失败: ' + response.status + ' ' + response.statusText);
         }
         
         // 配置渲染器
         configureMarked();
         
         const content = await response.text();
+        console.log('获取到的文章内容:', content);
+        console.log('内容类型:', typeof content);
+        
         const modal = document.getElementById('article-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalContent = document.getElementById('modal-content');
         
         modalTitle.textContent = title;
-        modalContent.innerHTML = marked.parse(content);
+        
+        // 确保content是字符串后再解析
+        if (typeof content === 'string' && content.length > 0) {
+            try {
+                // 确保marked已正确加载
+                if (typeof marked === 'undefined') {
+                    throw new Error('Marked.js 未正确加载');
+                }
+                
+                // 使用marked解析内容
+                let parsedContent = '';
+                if (marked && typeof marked.parse === 'function') {
+                    parsedContent = marked.parse(content);
+                } else if (marked && typeof marked === 'function') {
+                    parsedContent = marked(content);
+                } else {
+                    throw new Error('无法找到合适的marked解析方法');
+                }
+                
+                console.log('解析后的内容:', parsedContent);
+                console.log('解析内容类型:', typeof parsedContent);
+                
+                // 确保解析结果是字符串
+                if (typeof parsedContent === 'string') {
+                    modalContent.innerHTML = parsedContent;
+                } else {
+                    // 如果解析结果不是字符串，尝试转换为字符串
+                    modalContent.innerHTML = String(parsedContent);
+                    console.warn('Markdown解析结果不是字符串，已转换为字符串:', parsedContent);
+                }
+            } catch (parseError) {
+                console.error('Markdown解析错误:', parseError);
+                modalContent.innerHTML = '<p>文章内容解析失败: ' + parseError.message + '</p>';
+            }
+        } else {
+            modalContent.innerHTML = '<p>文章内容为空或格式不正确</p>';
+        }
         
         // 添加一些额外的样式处理
         // 为所有图片添加圆角和阴影
