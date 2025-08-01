@@ -1,4 +1,4 @@
-a// 移动端菜单切换
+// 移动端菜单切换
 document.getElementById('menu-toggle').addEventListener('click', function() {
     const menu = document.getElementById('mobile-menu');
     menu.classList.toggle('hidden');
