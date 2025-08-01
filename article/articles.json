@@ -1,0 +1,26 @@
+[
+  {
+    "id": "data-visualization",
+    "title": "数据可视化实践指南",
+    "date": "2025-08-01",
+    "author": "样例",
+    "summary": "介绍如何使用 D3.js 和 Chart.js 创建交互式图表，涵盖数据可视化的重要性及最佳实践。",
+    "filePath": "article/data-visualization.md"
+  },
+  {
+    "id": "javascript-async",
+    "title": "JavaScript异步编程详解",
+    "date": "2025-08-01",
+    "author": "样例",
+    "summary": "深入探讨Promise、async/await等JavaScript异步编程概念及其发展历程和实践建议。",
+    "filePath": "article/javascript-async.md"
+  },
+  {
+    "id": "tailwind-tutorial",
+    "title": "如何使用Tailwind CSS构建现代化网站",
+    "date": "2025-08-01",
+    "author": "样例",
+    "summary": "介绍Tailwind CSS的优势及使用方法，包括基础用法和高级技巧。",
+    "filePath": "article/tailwind-tutorial.md"
+  }
+]
