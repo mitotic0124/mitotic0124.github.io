@@ -199,8 +199,19 @@ function configureMarked() {
     marked.setOptions({
         renderer: renderer,
         highlight: function(code, lang) {
-            // 简单的代码高亮实现
-            return code.replace(/(&lt;\/?[^&gt;]+&gt;)/g, '<span class="text-secondary">$1</span>');
+            // 确保code是字符串类型
+            if (typeof code !== 'string') {
+                code = String(code);
+            }
+            
+            // 确保code不为null或undefined后再进行替换
+            if (code && typeof code.replace === 'function') {
+                // 简单的代码高亮实现
+                return code.replace(/(&lt;\/?[^&gt;]+&gt;)/g, '<span class="text-secondary">$1</span>');
+            }
+            
+            // 如果无法处理，返回原始代码
+            return code;
         },
         langPrefix: 'language-',
         pedantic: false,
